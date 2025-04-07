@@ -1,0 +1,92 @@
+import nltk
+from nltk.chat.util import Chat, reflections
+
+# Define chatbot responses with intent detection
+pairs = [
+    [
+        r".*\bmy name is (.*)\b.*",
+        ["Hello %1, how can I assist you today?", "Nice to meet you, %1! How may I help?"]
+    ],
+    [
+        r".*\b(what is your name|who are you)\b.*",
+        ["I am your virtual assistant. How can I help?", "I'm a chatbot here to assist you!"]
+    ],
+    [
+        r".*\bhow are you\b.*",
+        ["I'm great! Thanks for asking. How can I assist you?", "I'm here to help! What do you need assistance with?"]
+    ],
+    [
+        r".*\bi am doing (good|great|fine)\b.*",
+        ["Glad to hear that! How can I assist you?", "That's wonderful! How may I help today?"]
+    ],
+    [
+        r".*\b(hi|hello|hey)\b.*",
+        ["Hello! How can I assist you?", "Hi there! Need any help?", "Hey! How may I assist you today?"]
+    ],
+    [
+        r".*\b(who created you|who made you)\b.*",
+        ["I was developed to assist customers like you!", "A team of developers created me to provide support."]
+    ],
+    [
+        r".*\bwhat services do you offer\b.*",
+        ["We provide 24/7 customer support, product recommendations, and assistance with orders!"]
+    ],
+    [
+        r".*\btrack my order\b.*",
+        ["Please provide your order ID, and I'll check the status for you.", "Sure! What's your order ID?"]
+    ],
+    [
+        r".*\bdelivered\b.*",
+        ["Let me check. Please provide your order ID.", "Can you share your order number? I'll look it up."]
+    ],
+    [
+        r".*\bminimum price of\b.*",
+        ["Prices vary based on discounts and availability. Would you like me to check current offers?"]
+    ],
+    [
+        r".*\bany sale available\b.*",
+        ["Yes! We have ongoing discounts on selected products. Would you like to see today's deals?"]
+    ],
+    [
+        r".*\bi want a refund for this product\b.*",
+        ["I understand. Please share your order ID so I can process your refund request."]
+    ],
+    [
+        r".*\brefund policy\b.*",
+        ["Our refund policy allows returns within 30 days of purchase. Would you like more details?"]
+    ],
+    [
+        r".*\bcancel my\b.*",
+        ["If your order hasn't been shipped yet, you can cancel it. Please provide your order ID."]
+    ],
+    [
+        r".*\brefund\b.*",
+        ["Refunds are usually processed within 5-7 business days after approval."]
+    ],
+    [
+        r".*\bexchange my order\b.*",
+        ["Yes, exchanges are possible within 30 days of purchase. Would you like to start an exchange request?"]
+    ],
+    [
+        r".*\bsupport\b.*",
+        ["I'm here to help! What issue are you facing?"]
+    ],
+    [
+        r".*\b(thank you|thanks)\b.*",
+        ["You're welcome! Let me know if you need anything else.", "Happy to help!"]
+    ],
+    [
+        r".*\bquit\b.*",
+        ["Goodbye! Have a great day!", "Bye! Feel free to chat again anytime."]
+    ]
+]
+
+# Chat function
+def chat():
+    print("Hello! Welcome to our customer support chatbot. Type 'quit' to exit.")
+    chatbot = Chat(pairs, reflections)
+    chatbot.converse()
+
+# Run the chatbot
+if __name__ == "__main__":
+    chat()

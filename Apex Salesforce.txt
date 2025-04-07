@@ -1,0 +1,60 @@
+✅ Final Working Apex Class (named Intrest):
+
+public class Intrest {
+
+    public Decimal principal { get; set; }
+    public Decimal rate { get; set; }
+    public Integer year { get; set; }
+    public Decimal result { get; set; }
+    public String message { get; set; }
+
+    public void SimpleInterest() {
+        if (validateInputs()) {
+            result = (principal * rate * year) / 100;
+            message = null;
+        }
+    }
+
+    public void CompoundInterest() {
+        if (validateInputs()) {
+            Double p = (Double) principal;
+            Double r = (Double) rate;
+            Double t = (Double) year;
+            Double amount = p * Math.pow((1 + r / 100), t);
+            result = amount - principal;
+            message = null;
+        }
+    }
+
+    private Boolean validateInputs() {
+        if (principal < 0 || rate < 0 || year < 0) {
+            result = null;
+            message = 'Inputs cannot be negative.';
+            return false;
+        }
+        return true;
+    }
+}
+
+
+
+✅ Matching Visualforce Page (controller must match Intrest):
+
+<apex:page controller="Intrest">
+    <apex:sectionHeader title="Interest Calculator" subtitle="Simple & Compound Interest"/>
+    <apex:form>
+        <apex:pageBlock title="Calculate Interest">
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="Simple Interest" action="{!SimpleInterest}" reRender="res,msg"/>
+                <apex:commandButton value="Compound Interest" action="{!CompoundInterest}" reRender="res,msg"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection title="Input Details">
+                <apex:inputText label="Principal" value="{!principal}" />
+                <apex:inputText label="Rate (%)" value="{!rate}" />
+                <apex:inputText label="Year(s)" value="{!year}" />
+                <apex:outputText label="Result" value="{!result}" id="res"/>
+                <apex:outputText style="color:red;" value="{!message}" id="msg"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

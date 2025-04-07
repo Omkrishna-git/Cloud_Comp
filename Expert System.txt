@@ -1,0 +1,349 @@
+class InvestmentExpertSystem:
+    def __init__(self):
+        self.user_data = {}
+        self.market_data = self.fetch_market_data()
+        self.sip_options = self.load_sip_options()
+        self.stock_strategies = self.load_stock_strategies()
+
+    def run(self):
+        print("Welcome to the Stock Market Prediction Expert System")
+        print("="*50)
+        self.collect_user_input()
+        self.analyze_preferences()
+        self.generate_recommendations()
+
+    def collect_user_input(self):
+        """Collect user investment preferences and amount"""
+        print("\nStep 1: Investment Preferences")
+        self.user_data['amount'] = float(input("How much money do you want to invest? $"))
+
+        print("\nInvestment Options:")
+        print("1. Systematic Investment Plan (SIP)")
+        print("2. Direct Stock Investment")
+        choice = input("Choose your investment type (1 or 2): ")
+
+        if choice == '1':
+            self.user_data['investment_type'] = 'SIP'
+            self.collect_sip_preferences()
+        else:
+            self.user_data['investment_type'] = 'stocks'
+            self.collect_stock_preferences()
+
+    def collect_sip_preferences(self):
+        """Collect SIP-specific preferences"""
+        print("\nStep 2: SIP Preferences")
+        print("Risk Profile Options:")
+        print("1. Low (Conservative)")
+        print("2. Medium (Balanced)")
+        print("3. High (Aggressive)")
+        self.user_data['risk_profile'] = input("Select your risk tolerance (1-3): ")
+
+    def collect_stock_preferences(self):
+        """Collect stock-specific preferences"""
+        print("\nStep 2: Stock Preferences")
+        print("Investment Strategy:")
+        print("1. Conservative (Low Risk)")
+        print("2. Balanced (Medium Risk)")
+        print("3. Aggressive (High Risk)")
+        self.user_data['strategy'] = input("Select your investment strategy (1-3): ")
+
+        print("\nPortfolio Customization:")
+        print("Would you like to customize sector allocations? (y/n)")
+        if input().lower() == 'y':
+            print("Available sectors: Technology, Healthcare, Financial, Consumer, Industrial, Semiconductors, Cybersecurity")
+            self.user_data['custom_sectors'] = input("Enter preferred sectors (comma separated): ").split(',')
+
+    def analyze_preferences(self):
+        """Analyze user preferences with market data"""
+        if self.user_data['investment_type'] == 'SIP':
+            self.analyze_sip_options()  # Fixed the method name here
+        else:
+            self.analyze_stock_strategy()  # Fixed the method name here
+
+        self.analyze_market_timing()
+        if self.user_data['investment_type'] == 'stocks':
+            self.determine_position_sizing()
+
+    def analyze_sip_options(self):
+        """Analyze and recommend SIP options"""
+        risk_map = {'1': 'low', '2': 'medium', '3': 'high'}
+        risk_profile = risk_map[self.user_data['risk_profile']]
+
+        # Filter by risk profile
+        filtered = [sip for sip in self.sip_options if sip['risk'] == risk_profile]
+
+        # Sort by performance metrics
+        filtered.sort(key=lambda x: (
+            -x['5y_cagr'],
+            x['expense_ratio'],
+            -x['manager_rating']
+        ))
+
+        self.recommendations = filtered[:3]
+
+    def analyze_stock_strategy(self):
+        """Select appropriate stock strategy"""
+        strategy_map = {
+            '1': 'conservative',
+            '2': 'balanced',
+            '3': 'aggressive'
+        }
+        self.selected_strategy = strategy_map[self.user_data['strategy']]
+
+        # Apply sector filters if specified
+        if hasattr(self.user_data, 'custom_sectors'):
+            sectors = [s.strip().lower() for s in self.user_data['custom_sectors']]
+            filtered_stocks = []
+
+            for stock in self.stock_strategies[self.selected_strategy]['stocks']:
+                if stock['sector'].lower() in sectors:
+                    filtered_stocks.append(stock)
+
+            if filtered_stocks:
+                self.stock_strategies[self.selected_strategy]['stocks'] = filtered_stocks
+
+    def determine_position_sizing(self):
+        """Determine how many positions and allocation percentages"""
+        amount = self.user_data['amount']
+
+        if amount < 10000:
+            self.position_count = min(5, len(self.stock_strategies[self.selected_strategy]['stocks']))
+        elif 10000 <= amount <= 50000:
+            self.position_count = min(10, len(self.stock_strategies[self.selected_strategy]['stocks']))
+        else:
+            self.position_count = min(15, len(self.stock_strategies[self.selected_strategy]['stocks']))
+
+        # Calculate allocation per position
+        if self.selected_strategy == 'conservative':
+            self.position_size = amount * 0.20  # 20% for core positions
+        elif self.selected_strategy == 'balanced':
+            self.position_size = amount * 0.15  # 15% for core positions
+        else:
+            self.position_size = amount * 0.10  # 10% for aggressive positions
+
+    def analyze_market_timing(self):
+        """Determine if current market conditions are favorable"""
+        # Analyze market indices trends
+        market_status = "neutral"
+        if self.market_data['ma50'] > self.market_data['ma200']:
+            market_status = "bullish"
+        elif self.market_data['ma50'] < self.market_data['ma200']:
+            market_status = "bearish"
+
+        # Consider volatility index
+        if self.market_data['vix'] > 30:
+            market_status = "volatile"
+
+        self.market_timing = market_status
+
+    def generate_recommendations(self):
+        """Generate final recommendations for the user"""
+        print("\n=== Investment Recommendations ===")
+        print(f"Amount to Invest: ${self.user_data['amount']:,}")
+
+        # Display market timing
+        self.display_market_timing()
+
+        if self.user_data['investment_type'] == 'SIP':
+            self.display_sip_recommendations()
+        else:
+            self.display_stock_recommendations()
+
+        # Add portfolio management rules
+        if self.user_data['investment_type'] == 'stocks':
+            self.display_portfolio_rules()
+        self.display_tax_tips()
+
+    def display_sip_recommendations(self):
+        """Display SIP fund recommendations"""
+        print("\nTop SIP Recommendations:")
+        for i, sip in enumerate(self.recommendations, 1):
+            print(f"\n{i}. {sip['name']}")
+            print(f"   Category: {sip['category']}")
+            print(f"   5-Year CAGR: {sip['5y_cagr']}%")
+            print(f"   Expense Ratio: {sip['expense_ratio']}%")
+            print(f"   Fund Manager Rating: {sip['manager_rating']}/5")
+            print(f"   Minimum Investment: ${sip['min_investment']}")
+
+        # Allocation suggestion
+        print("\nSuggested Allocation:")
+        if self.user_data['amount'] >= 1500:  # Enough for 3 funds
+            print(f"Consider investing ${self.user_data['amount']/3:,.2f} each in top 3 funds for diversification")
+        else:
+            print(f"Invest full amount in the top recommended fund")
+
+    def display_stock_recommendations(self):
+        """Display stock recommendations based on strategy"""
+        strategy = self.stock_strategies[self.selected_strategy]
+        print(f"\nRecommended {strategy['name']} Portfolio:")
+        print(f"Strategy: {strategy['description']}")
+        print(f"\n{'Stock':<8}{'Sector':<15}{'Thesis':<40}{'Allocation %':>12}")
+        print("-"*75)
+
+        for stock in strategy['stocks'][:self.position_count]:
+            print(f"{stock['symbol']:<8}{stock['sector']:<15}{stock['thesis']:<40}{stock['allocation']:>12}%")
+
+        # Calculate actual dollar amounts
+        print(f"\nSuggested Position Sizing (${self.user_data['amount']:,} total):")
+        for stock in strategy['stocks'][:self.position_count]:
+            amount = self.user_data['amount'] * (stock['allocation']/100)
+            print(f"{stock['symbol']}: ${amount:,.2f} ({stock['allocation']}%)")
+
+        print(f"\nAction: {strategy['action']}")
+
+    def display_market_timing(self):
+        """Display market timing indicators"""
+        print("\nMarket Timing Indicators:")
+        print(f"- 50-day MA: {self.market_data['ma50']}")
+        print(f"- 200-day MA: {self.market_data['ma200']}")
+
+        if self.market_data['ma50'] > self.market_data['ma200']:
+            print("  → Golden Cross (Bullish Signal)")
+        else:
+            print("  → Death Cross (Bearish Signal)")
+
+        print(f"- VIX: {self.market_data['vix']} ({self.get_vix_interpretation()})")
+        print(f"- RSI: {self.market_data['rsi']} ({self.get_rsi_interpretation()})")
+        print(f"\nRecommendation: {self.get_market_timing_advice()}")
+
+    def display_portfolio_rules(self):
+        """Display portfolio management rules"""
+        print("\nPortfolio Management Rules:")
+        print("1. Sector Limits:")
+        print("   - Max 30% in any single sector")
+        print("   - Minimum 3 sectors represented")
+        print("\n2. Position Sizing:")
+        print(f"   - Core positions: {self.position_size/self.user_data['amount']:.0%} each")
+        print("   - Satellite positions: 5-10% each")
+        print("\n3. Rebalancing:")
+        print("   - Trim winners >25% past target allocation")
+        print("   - Add to losers only if thesis remains intact")
+
+    def display_tax_tips(self):
+        """Display tax efficiency tips"""
+        print("\nTax Efficiency Tips:")
+        print("- Hold winners >1 year for long-term capital gains")
+        print("- Use tax-loss harvesting to offset gains")
+        print("- Consider ETFs for core holdings (lower turnover)")
+
+    # Helper methods
+    def get_vix_interpretation(self):
+        if self.market_data['vix'] > 30:
+            return "High Volatility (Caution)"
+        elif self.market_data['vix'] > 20:
+            return "Moderate Volatility"
+        else:
+            return "Low Volatility"
+
+    def get_rsi_interpretation(self):
+        rsi = self.market_data['rsi']
+        if rsi > 70:
+            return "Overbought"
+        elif rsi < 30:
+            return "Oversold"
+        else:
+            return "Neutral"
+
+    def get_market_timing_advice(self):
+        if self.market_data['ma50'] > self.market_data['ma200']:
+            if self.user_data['amount'] > 50000:
+                return "Favorable conditions. Phase investments over 2 months."
+            else:
+                return "Good time to invest. Consider dollar-cost averaging."
+        else:
+            return "Market appears weak. Build positions gradually on dips."
+
+    # Data loading methods
+    def fetch_market_data(self):
+        """Simulate fetching real market data"""
+        return {
+            'ma50': 4250.25,
+            'ma200': 4150.25,
+            'vix': 22.3,
+            'rsi': 58
+        }
+
+    def load_sip_options(self):
+        """Load SIP/mutual fund options"""
+        return [
+            {
+                'name': 'Blue Chip Growth Fund',
+                'category': 'Large-Cap Growth',
+                'risk': 'high',
+                '5y_cagr': 15.2,
+                'expense_ratio': 0.85,
+                'manager_rating': 4.5,
+                'min_investment': 500
+            },
+            {
+                'name': 'Dividend Aristocrats Fund',
+                'category': 'Large-Cap Value',
+                'risk': 'low',
+                '5y_cagr': 9.8,
+                'expense_ratio': 0.60,
+                'manager_rating': 4.2,
+                'min_investment': 500
+            },
+            {
+                'name': 'Balanced Growth Fund',
+                'category': 'Multi-Cap',
+                'risk': 'medium',
+                '5y_cagr': 12.1,
+                'expense_ratio': 0.75,
+                'manager_rating': 4.3,
+                'min_investment': 500
+            }
+        ]
+
+    def load_stock_strategies(self):
+        """Load pre-configured stock strategies"""
+        return {
+            'conservative': {
+                'name': 'Conservative (Low Risk)',
+                'description': 'Large-cap focused with stable dividends',
+                'action': 'Dollar-cost average over 3-6 months',
+                'stocks': [
+                    {'symbol': 'AAPL', 'sector': 'Technology', 'thesis': 'Strong cash flow and buybacks', 'allocation': 20},
+                    {'symbol': 'JNJ', 'sector': 'Healthcare', 'thesis': 'Defensive with stable dividends', 'allocation': 20},
+                    {'symbol': 'JPM', 'sector': 'Financial', 'thesis': 'Interest rate beneficiary', 'allocation': 15},
+                    {'symbol': 'PG', 'sector': 'Consumer', 'thesis': 'Recession-resistant', 'allocation': 15},
+                    {'symbol': 'MSFT', 'sector': 'Technology', 'thesis': 'Cloud growth + AI leadership', 'allocation': 30}
+                ]
+            },
+            'balanced': {
+                'name': 'Balanced (Medium Risk)',
+                'description': 'Blend of large and mid-cap growth stocks',
+                'action': 'Invest 50% now, 50% on 10% pullbacks',
+                'stocks': [
+                    {'symbol': 'GOOGL', 'sector': 'Technology', 'thesis': 'AI + advertising recovery', 'allocation': 15},
+                    {'symbol': 'COST', 'sector': 'Consumer', 'thesis': 'Membership growth', 'allocation': 15},
+                    {'symbol': 'AMD', 'sector': 'Semiconductors', 'thesis': 'AI chip demand', 'allocation': 10},
+                    {'symbol': 'PANW', 'sector': 'Cybersecurity', 'thesis': 'Critical infrastructure need', 'allocation': 10},
+                    {'symbol': 'SOFI', 'sector': 'FinTech', 'thesis': 'High-growth digital banking', 'allocation': 5},
+                    {'symbol': 'LLY', 'sector': 'Pharma', 'thesis': 'GLP-1 drug dominance', 'allocation': 15},
+                    {'symbol': 'WM', 'sector': 'Industrial', 'thesis': 'Waste management moat', 'allocation': 10},
+                    {'symbol': 'NVDA', 'sector': 'Technology', 'thesis': 'GPU/AI monopoly', 'allocation': 20}
+                ]
+            },
+            'aggressive': {
+                'name': 'Aggressive (High Risk)',
+                'description': 'Small/mid-cap growth with high potential',
+                'action': 'Use tight 15% stop-losses. Smaller positions (5-10% each)',
+                'stocks': [
+                    {'symbol': 'SMCI', 'sector': 'Technology', 'thesis': 'AI server boom', 'allocation': 15},
+                    {'symbol': 'MSTR', 'sector': 'Crypto', 'thesis': 'Bitcoin proxy', 'allocation': 10},
+                    {'symbol': 'RIVN', 'sector': 'EV', 'thesis': 'Amazon delivery van deal', 'allocation': 5},
+                    {'symbol': 'PATH', 'sector': 'AI', 'thesis': 'Automation software growth', 'allocation': 10},
+                    {'symbol': 'DDOG', 'sector': 'Cloud', 'thesis': 'Monitoring demand surge', 'allocation': 15},
+                    {'symbol': 'CRWD', 'sector': 'Cybersecurity', 'thesis': 'Zero-trust adoption', 'allocation': 15},
+                    {'symbol': 'TSLA', 'sector': 'EV/Energy', 'thesis': 'FSD and Optimus potential', 'allocation': 10},
+                    {'symbol': 'COIN', 'sector': 'Crypto', 'thesis': 'ETF flows beneficiary', 'allocation': 10},
+                    {'symbol': 'PLTR', 'sector': 'AI/Defense', 'thesis': 'Government contracts', 'allocation': 10}
+                ]
+            }
+        }
+
+# Run the expert system
+if __name__ == "__main__":
+    expert = InvestmentExpertSystem()
+    expert.run()
