@@ -60,6 +60,15 @@ public:
         return order.size() == numCourses ? order : vector<int>{};
     }
 
+// Example Input for 6 courses with edges:
+
+// 6 5
+// 3 1
+// 1 2
+// 2 0
+// 4 3
+// 5 2
+
     // Dijkstra’s Algorithm
     void dijkstra(int src) {
         unordered_map<int, int> dist;
